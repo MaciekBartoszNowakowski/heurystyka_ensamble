@@ -39,6 +39,7 @@ class Agent:
 
         # add new ships to types
         ships = obs['allied_ships']
+
         for ship in ships:
             if not ship[0] in self.ship_types.keys():
                 self.ship_types[ship[0]] = ShipType.Attacker
@@ -108,6 +109,8 @@ class Agent:
             speed = 1 
             # Add ship action to move
             direction = self.get_next_step_direction(ship_x,ship_y)
+        else:
+            speed = 0
 
 
         return [ship_id, 0, direction, speed]
@@ -121,7 +124,6 @@ class Agent:
     def conquerer(self, obs, ship):
         pass
             
-
 
     def calculate_direction(self, ship_x: int, ship_y: int, target_x: int, target_y: int) -> int:
         """
