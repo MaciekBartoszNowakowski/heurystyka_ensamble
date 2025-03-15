@@ -12,15 +12,15 @@ class Agent:
     ship_types = {}
 
     def __init__(self, side: int):
-        self.side = None
+        self.side = 0
         self.enemy_base_x = 91
         self.enemy_base_y = 91
         self.home_base_x = 9
         self.home_base_y = 9
         self.map_x = 100
         self.map_y = 100
-        # if side == 1:
-        #     self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+        if side == 1:
+            self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
         self.ship_state_map = {}
 
 
@@ -69,15 +69,9 @@ class Agent:
         ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
 
         direction = 0
-        speed = 0
+        speed = 1
 
-        # If the ship is not moving and not under cooldown
-        if move_cooldown == 0:
-            speed = 1  # Move 1 step at a time
-
-            # Add ship action to move
-
-            direction = self.get_next_step_direction(ship_id,ship_x,ship_y)
+        direction = self.get_next_step_direction(ship_id,ship_x,ship_y)
 
 
         return [ship_id, 0, direction, speed]
