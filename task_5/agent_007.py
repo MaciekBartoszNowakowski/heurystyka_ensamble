@@ -3,34 +3,31 @@ import random
 class Agent:
 
     def __init__(self, side: int):
-        self.side = side
-        self.enemy_base_x = None
-        self.enemy_base_y = None
-        self.home_base_x = None
-        self.home_base_y = None
+        self.side = None
+        self.enemy_base_x = 91
+        self.enemy_base_y = 91
+        self.home_base_x = 9
+        self.home_base_y = 9
         self.map_x = 100
         self.map_y = 100
-        self.step_nr = 0
+        # if side == 1:
+        #     self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+        self.ship_state_map = {}
+
 
     def get_action(self, obs: dict) -> dict:
-        """
-        Main function, which gets called during step() of the environment.
-
-        :param obs:
-        :return:
-        """
         ships_actions = []
 
-        if self.home_base_x is None or self.home_base_y is None:
-            # Use the first allied ship's position as home base (if not already known)
+        if self.side == None:
             start_planet = obs['planets_occupation'][0]
-            self.home_base_x = start_planet[0]
-            self.home_base_y = start_planet[1]
+            if start_planet[0] > self.map_x//2:
+                self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+                self.side = 1
+            else:
+                self.side = 0
 
-            self.get_enemy_base()
 
         # self.get_next_step_direction()
-
         # Send ships to the center of the map
         for ship in obs['allied_ships']:
             ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
@@ -38,11 +35,11 @@ class Agent:
 
             # If the ship is not moving and not under cooldown
             if move_cooldown == 0:
-
                 speed = 1  # Move 1 step at a time
 
                 # Add ship action to move
-                direction = self.get_next_step_direction(ship_x,ship_y)
+
+                direction = self.get_next_step_direction(ship_id,ship_x,ship_y)
 
                 ships_actions.append([ship_id,0,direction,speed])
 
@@ -77,33 +74,149 @@ class Agent:
             # Move vertically (down or up)
             return 1 if dy > 0 else 3
 
-    def get_next_step_direction(self, pos_x, pos_y):
-        if self.home_base_x < self.map_x/2:
-            if abs(pos_x - self.home_base_x) < self.map_x/2 and abs(pos_y - self.home_base_y) < self.map_y/2 and pos_y != 0:
-                return 3
-            elif pos_y != self.enemy_base_y and pos_x != self.map_x -1:
-                return 0
-            elif pos_y != self.enemy_base_y:
-                return 1
-            elif pos_x != self.enemy_base_x:
-                return 2
-        if self.home_base_x > self.map_x/2:
-            if abs(pos_x - self.home_base_x) < self.map_x/2 and abs(pos_y - self.home_base_y) < self.map_x/2 and pos_y != self.map_y - 1:
-                return 1
-            elif pos_y != self.enemy_base_y and pos_x != 1:
-                return 2
-            elif pos_y != self.enemy_base_y:
-                return 3
-            elif pos_x != self.enemy_base_x:
-                return 0
+    # def get_next_step_direction(self,ship_id, pos_x, pos_y):
+    #     self.ship_state_map.setdefault(ship_id, 0)
+    #     if self.ship_state_map[ship_id] == 0:
+    #         if pos_x > pos_y:
+    #             if pos_x > self.map_y - pos_y:
+    #                 if pos_x == self.map_x -1: self.ship_state_map[ship_id] = 3
+    #                 else: return 0
+    #             else:
+    #                 if pos_x == 0: self.ship_state_map[ship_id] = 1
+    #                 else: return 3
+    #         else:
+    #             if pos_x > self.map_y - pos_y:
+    #                 if pos_y == self.map_y-1: self.ship_state_map[ship_id] = 4
+    #                 else: return 1
+    #             else:
+    #                 if pos_x == 0: self.ship_state_map[ship_id] = 2
+    #                 else: return 2
+    #     elif self.ship_state_map[ship_id] == 1:
+    #         if self.side == 0:
+    #             if pos_x == self.map_x-1: self.ship_state_map[ship_id] = 3
+    #             else: return 0
+    #         else:
+    #             if pos_x == 0: self.ship_state_map[ship_id] = 5
+    #             else: return 2
+    #     elif self.ship_state_map[ship_id] == 2:
+    #         if self.side == 0:
+    #             if pos_y == self.map_y-1: self.ship_state_map[ship_id] = 4
+    #             else: return 1
+    #         else:
+    #             if pos_y == 0: self.ship_state_map[ship_id] = 5
+    #             else: return 3
+    #     elif self.ship_state_map[ship_id] == 3:
+    #         if self.side == 0:
+    #             if pos_y == self.map_y-1: self.ship_state_map[ship_id] = 5
+    #             else: return 1
+    #         else:
+    #             if pos_y == 0:
+    #                 self.ship_state_map[ship_id] = 1
+    #                 self.get_next_step_direction(ship_id,pos_x,pos_y)
+    #             else: return 2
+    #     elif self.ship_state_map[ship_id] == 4:
+    #         if self.side == 0:
+    #             if pos_x == self.map_x-1: self.ship_state_map[ship_id] = 5
+    #             else: return 0
+    #         else:
+    #             if pos_x == 0:
+    #                 self.ship_state_map[ship_id] = 2
+    #                 self.get_next_step_direction(ship_id,pos_x,pos_y)
+    #             else: return 2
+    #     # elif self.ship_state_map[ship_id] == 5:
+    #     else:
+    #         return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)
+    def get_next_step_direction(self, ship_id, pos_x, pos_y):
+        self.ship_state_map.setdefault(ship_id, 0)
+        if self.get_distance(pos_x,pos_y,self.enemy_base_x,self.enemy_base_y) <= 15:
+            return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)
+        if self.ship_state_map[ship_id] == 0:
+            if pos_x > pos_y:
+                if pos_x > self.map_y - pos_y:
+                    if pos_x == self.map_x - 1:
+                        self.ship_state_map[ship_id] = 3
+                    else:
+                        return 0
+                else:
+                    if pos_y == 0:
+                        self.ship_state_map[ship_id] = 1
+                    else:
+                        return 3
+            else:
+                if pos_x > self.map_y - pos_y:
+                    if pos_y == self.map_y - 1:
+                        self.ship_state_map[ship_id] = 4
+                    else:
+                        return 1
+                else:
+                    if pos_x == 0:
+                        self.ship_state_map[ship_id] = 2
+                    else:
+                        return 2
 
+        elif self.ship_state_map[ship_id] == 1:
+            if self.side == 0:
+                if pos_x == self.map_x - 1:
+                    self.ship_state_map[ship_id] = 3
+                else:
+                    return 0
+            else:
+                if pos_x == 0:
+                    self.ship_state_map[ship_id] = 5
+                else:
+                    return 2
 
+        elif self.ship_state_map[ship_id] == 2:
+            if self.side == 0:
+                if pos_y == self.map_y - 1:
+                    self.ship_state_map[ship_id] = 4
+                else:
+                    return 1
+            else:
+                if pos_y == 0:
+                    self.ship_state_map[ship_id] = 5
+                else:
+                    return 3
+
+        elif self.ship_state_map[ship_id] == 3:
+            if self.side == 0:
+                if pos_y == self.map_y - 1:
+                    self.ship_state_map[ship_id] = 5
+                else:
+                    return 1
+            else:
+                if pos_y == 0:
+                    self.ship_state_map[ship_id] = 1
+                    return self.get_next_step_direction(ship_id, pos_x, pos_y)
+                else:
+                    return 2
+
+        elif self.ship_state_map[ship_id] == 4:
+            if self.side == 0:
+                if pos_x == self.map_x - 1:
+                    self.ship_state_map[ship_id] = 5
+                else:
+                    return 0
+            else:
+                if pos_x == 0:
+                    self.ship_state_map[ship_id] = 2
+                    return self.get_next_step_direction(ship_id, pos_x, pos_y)
+                else:
+                    return 2
+
+        elif self.ship_state_map[ship_id] == 5:
+            return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)
+
+        return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)  # Fallback return
 
     # Default to right if no movement is needed (though this shouldn't happen)
 
     def get_enemy_base(self):
         self.enemy_base_x = abs(self.home_base_x - self.map_x)
         self.enemy_base_y = abs(self.home_base_y - self.map_y)
+
+    def get_distance(self, x_1, y_1, x_2, y_2):
+        return (abs(x_1 -x_2)**2 + abs(y_1 - y_2)**2)**(1/2)
 
     def load(self, abs_path: str):
         pass
