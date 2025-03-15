@@ -1,19 +1,35 @@
-# Skeleton for Agent class
+import random
+from enum import Enum
+
+class ShipType(Enum):
+    Attacker = 1
+    Defender = 2
+    Explorer = 3
+    Conquerer = 4
 
 class Agent:
+
+    ship_types = {}
+
     def __init__(self, side: int):
-        """
-        :param side: Indicates whether the player is on left side (0) or right side (1)
-        """
-        self.side = side
+        self.side = None
+        self.enemy_base_x = 91
+        self.enemy_base_y = 91
+        self.home_base_x = 9
+        self.home_base_y = 9
+        self.map_x = 100
+        self.map_y = 100
+        # if side == 1:
+        #     self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+        self.ship_state_map = {}
+
 
     def get_action(self, obs: dict) -> dict:
         """
         Main function, which gets called during step() of the environment.
 
-        Observation space:
-            game_map: whole grid of board_size, which already has applied visibility mask on it
-            allied_ships: an array of all currently available ships for the player. The ships are represented as a list:
+        :param obs:
+        allied_ships: an array of all currently available ships for the player. The ships are represented as a list:
                 (ship id, position x, y, current health points, firing_cooldown, move_cooldown)
                 - ship id: int [0, 1000]
                 - position x: int [0, 100]
@@ -21,66 +37,186 @@ class Agent:
                 - health points: int [1, 100]
                 - firing_cooldown: int [0, 10]
                 - move_cooldown: int [0, 3]
-            enemy_ships: same, but for the opposing player ships
-            planets_occupation: for each visible planet, it shows the occupation progress:
-                - planet_x: int [0, 100]
-                - planet_y: int [0, 100]
-                - occupation_progress: int [-1, 100]:
-                    -1: planet is unoccupied
-                    0: planet occupied by the 1st player
-                    100: planet occupied by the 2nd player
-                    Values between indicate an ongoing conflict for the ownership of the planet
-            resources: current resources available for building
-
-        Action space:
-            ships_actions: player can provide an action to be executed by every of his ships.
-                The command looks as follows:
-                - ship_id: int [0, 1000]
-                - action_type: int [0, 1]
-                    0 - move
-                    1 - fire
-                - direction: int [0, 3] - direction of movement or firing
-                    0 - right
-                    1 - down
-                    2 - left
-                    3 - up
-                - speed (not applicable when firing): int [0, 3] - a number of fields to move
-            construction: int [0, 10] - a number of ships to be constructed
-
-        :param obs:
         :return:
         """
 
+        # add new ships to types
+        ships = obs['allied_ships']
+
+        for ship in ships:
+            if not ship[0] in self.ship_types.keys():
+                self.ship_types[ship[0]] = ShipType.Attacker
+
+        ships_actions = []
+        type_to_method = {
+            ShipType.Attacker: self.attacker,
+            ShipType.Defender: self.defender,
+            ShipType.Explorer: self.explorer,
+            ShipType.Conquerer: self.conquerer,
+        }
+
+        for ship in ships:
+            ships_actions.append(type_to_method[self.ship_types[ship[0]]](obs, ship))
+
+
         return {
-            "ships_actions": [],
-            "construction": 0
+            "ships_actions": ships_actions,
+            "construction": 20
         }
 
 
-    def load(self, abs_path: str):
-        """
-        Function for loading all necessary weights for the agent. The abs_path is a path pointing to the directory,
-        where the weights for the agent are stored, so remember to join it to any path while loading.
+    def attacker(self, obs, ship):
+        ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
 
-        :param abs_path:
-        :return:
+        direction = 0
+        speed = 0
+
+        # If the ship is not moving and not under cooldown
+        if move_cooldown == 0:
+            speed = 1  # Move 1 step at a time
+
+            # Add ship action to move
+
+            direction = self.get_next_step_direction(ship_id,ship_x,ship_y)
+
+
+        return [ship_id, 0, direction, speed]
+    
+    def defender(self, obs, ship):
+        pass
+
+    def explorer(self, obs, ship):
+        pass
+
+    def conquerer(self, obs, ship):
+        pass
+            
+        # Send ships to the center of the map
+        for ship in obs['allied_ships']:
+            ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
+
+
+    def calculate_direction(self, ship_x: int, ship_y: int, target_x: int, target_y: int) -> int:
         """
+        Given the current position of the ship and the target position, calculate the direction
+        to move, encouraging the ship to move diagonally by prioritizing the axis with the greater distance.
+
+        Directions are defined as:
+            0 - right
+            1 - down
+            2 - left
+            3 - up
+        """
+        # Calculate horizontal and vertical difference
+        dx = target_x - ship_x
+        dy = target_y - ship_y
+
+        # Prioritize movement along the greater absolute distance
+        if abs(dx) >= abs(dy):
+            # Move horizontally (right or left)
+            return 0 if dx > 0 else 2
+        else:
+            # Move vertically (down or up)
+            return 1 if dy > 0 else 3
+
+ 
+    def get_next_step_direction(self, ship_id, pos_x, pos_y):
+        self.ship_state_map.setdefault(ship_id, 0)
+        if self.get_distance(pos_x,pos_y,self.enemy_base_x,self.enemy_base_y) <= 15:
+            return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)
+        if self.ship_state_map[ship_id] == 0:
+            if pos_x > pos_y:
+                if pos_x > self.map_y - pos_y:
+                    if pos_x == self.map_x - 1:
+                        self.ship_state_map[ship_id] = 3
+                    else:
+                        return 0
+                else:
+                    if pos_y == 0:
+                        self.ship_state_map[ship_id] = 1
+                    else:
+                        return 3
+            else:
+                if pos_x > self.map_y - pos_y:
+                    if pos_y == self.map_y - 1:
+                        self.ship_state_map[ship_id] = 4
+                    else:
+                        return 1
+                else:
+                    if pos_x == 0:
+                        self.ship_state_map[ship_id] = 2
+                    else:
+                        return 2
+
+        elif self.ship_state_map[ship_id] == 1:
+            if self.side == 0:
+                if pos_x == self.map_x - 1:
+                    self.ship_state_map[ship_id] = 3
+                else:
+                    return 0
+            else:
+                if pos_x == 0:
+                    self.ship_state_map[ship_id] = 5
+                else:
+                    return 2
+
+        elif self.ship_state_map[ship_id] == 2:
+            if self.side == 0:
+                if pos_y == self.map_y - 1:
+                    self.ship_state_map[ship_id] = 4
+                else:
+                    return 1
+            else:
+                if pos_y == 0:
+                    self.ship_state_map[ship_id] = 5
+                else:
+                    return 3
+
+        elif self.ship_state_map[ship_id] == 3:
+            if self.side == 0:
+                if pos_y == self.map_y - 1:
+                    self.ship_state_map[ship_id] = 5
+                else:
+                    return 1
+            else:
+                if pos_y == 0:
+                    self.ship_state_map[ship_id] = 1
+                    return self.get_next_step_direction(ship_id, pos_x, pos_y)
+                else:
+                    return 2
+
+        elif self.ship_state_map[ship_id] == 4:
+            if self.side == 0:
+                if pos_x == self.map_x - 1:
+                    self.ship_state_map[ship_id] = 5
+                else:
+                    return 0
+            else:
+                if pos_x == 0:
+                    self.ship_state_map[ship_id] = 2
+                    return self.get_next_step_direction(ship_id, pos_x, pos_y)
+                else:
+                    return 2
+
+        elif self.ship_state_map[ship_id] == 5:
+            return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)
+
+        return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)  # Fallback return
+
+    # Default to right if no movement is needed (though this shouldn't happen)
+
+    def get_enemy_base(self):
+        self.enemy_base_x = abs(self.home_base_x - self.map_x)
+        self.enemy_base_y = abs(self.home_base_y - self.map_y)
+
+    def get_distance(self, x_1, y_1, x_2, y_2):
+        return (abs(x_1 -x_2)**2 + abs(y_1 - y_2)**2)**(1/2)
+
+    def load(self, abs_path: str):
         pass
 
     def eval(self):
-        """
-        With this function you should switch the agent to inference mode.
-
-        :return:
-        """
         pass
 
     def to(self, device):
-        """
-        This function allows you to move the agent to a GPU. Please keep that in mind,
-        because it can significantly speed up the computations and let you meet the time requirements.
-
-        :param device:
-        :return:
-        """
         pass
