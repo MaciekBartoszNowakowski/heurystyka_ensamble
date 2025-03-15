@@ -37,20 +37,59 @@ class Agent:
         :return:
         """
 
-        global ship_types
-
-        # add new ship to types
+        # add new ships to types
         ships = obs['allied_ships']
         for ship in ships:
-
-            # logic for changing ship types
-            pass
-        
-            if not ship[0] in ship_types.keys():
-                ship_types[ship[0]] = ShipType.Defender
+            if not ship[0] in self.ship_types.keys():
+                self.ship_types[ship[0]] = ShipType.Attacker
 
         ships_actions = []
+        type_to_method = {
+            ShipType.Attacker: self.attacker,
+            ShipType.Defender: self.defender,
+            ShipType.Explorer: self.explorer,
+            ShipType.Conquerer: self.conquerer,
+        }
 
+        for ship in ships:
+            ships_actions.append(type_to_method[self.ship_types[ship[0]]](obs, ship))
+
+
+        # if self.home_base_x is None or self.home_base_y is None:
+        #     # Use the first allied ship's position as home base (if not already known)
+        #     start_planet = obs['planets_occupation'][0]
+        #     self.home_base_x = start_planet[0]
+        #     self.home_base_y = start_planet[1]
+
+        #     self.get_enemy_base()
+
+        # self.get_next_step_direction()
+
+        # # Send ships to the center of the map
+        # for ship in obs['allied_ships']:
+        #     ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
+
+
+        #     # If the ship is not moving and not under cooldown
+        #     if move_cooldown == 0:
+
+        #         speed = 1  # Move 1 step at a time
+
+        #         # Add ship action to move
+        #         direction = self.get_next_step_direction(ship_x,ship_y)
+
+        #         ships_actions.append([ship_id,0,direction,speed])
+
+        # Decide whether to construct new ships (for simplicity, we just decide to construct 1 ship)
+        # construction = 1
+
+        return {
+            "ships_actions": ships_actions,
+            "construction": 20
+        }
+
+
+    def attacker(self, obs, ship):
         if self.home_base_x is None or self.home_base_y is None:
             # Use the first allied ship's position as home base (if not already known)
             start_planet = obs['planets_occupation'][0]
@@ -61,28 +100,28 @@ class Agent:
 
         # self.get_next_step_direction()
 
-        # Send ships to the center of the map
-        for ship in obs['allied_ships']:
-            ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
+        ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
+        direction = 0
+        speed = 1
+        # If the ship is not moving and not under cooldown
+        if move_cooldown == 0:
+            speed = 1 
+            # Add ship action to move
+            direction = self.get_next_step_direction(ship_x,ship_y)
 
 
-            # If the ship is not moving and not under cooldown
-            if move_cooldown == 0:
+        return [ship_id, 0, direction, speed]
+    
+    def defender(self, obs, ship):
+        pass
 
-                speed = 1  # Move 1 step at a time
+    def explorer(self, obs, ship):
+        pass
 
-                # Add ship action to move
-                direction = self.get_next_step_direction(ship_x,ship_y)
+    def conquerer(self, obs, ship):
+        pass
+            
 
-                ships_actions.append([ship_id,0,direction,speed])
-
-        # Decide whether to construct new ships (for simplicity, we just decide to construct 1 ship)
-        # construction = 1
-
-        return {
-            "ships_actions": ships_actions,
-            "construction": 1
-        }
 
     def calculate_direction(self, ship_x: int, ship_y: int, target_x: int, target_y: int) -> int:
         """
