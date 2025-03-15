@@ -21,7 +21,22 @@ class Agent:
         self.map_y = 100
         self.step_nr = 0
 
+    # macieks variables
+        self.side = side
+        self.timeouts = {}
+        self.upper_start = False
+        self.turn = 0
+
+
     def get_action(self, obs: dict) -> dict:
+        allied_ships = obs['allied_ships']
+
+        if self.turn == 0:
+            if allied_ships[0][1] < 50:
+                self.upper_start = True
+
+        self.turn += 1
+
         """
         Main function, which gets called during step() of the environment.
 
@@ -42,6 +57,8 @@ class Agent:
         for ship in ships:
             if not ship[0] in self.ship_types.keys():
                 self.ship_types[ship[0]] = ShipType.Attacker
+                if len(ships)>1:
+                    self.ship_types[1] = ShipType.Explorer
 
         ships_actions = []
         type_to_method = {
@@ -116,7 +133,24 @@ class Agent:
         pass
 
     def explorer(self, obs, ship):
-        pass
+        ship_id, _, _, _ , _ ,_ = ship
+        if self.upper_start:
+            possible = [0, 1, 1, 1, 3, 3]
+        else:
+            possible = [2, 1, 1, 3, 3, 3]
+
+        if ship_id in self.timeouts:
+            time, side = self.timeouts[ship_id]
+            if time != 0:
+                time -= 1
+                self.timeouts[ship_id] = [time, side]
+            else:
+                self.timeouts[ship_id] = [random.randint(15, 23), possible[random.randint(0, 5)]]
+        else:
+            self.timeouts[ship_id] = [random.randint(15, 23), possible[random.randint(0, 5)]]
+
+        time, side = self.timeouts[ship_id]
+        return [ship_id, 0, side, 3]
 
     def conquerer(self, obs, ship):
         pass
