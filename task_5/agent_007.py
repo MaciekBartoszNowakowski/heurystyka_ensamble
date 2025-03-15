@@ -1,6 +1,15 @@
 import random
+from enum import Enum
+
+class ShipType(Enum):
+    Attacker = 1
+    Defender = 2
+    Explorer = 3
+    Conquerer = 4
 
 class Agent:
+
+    ship_types = {}
 
     def __init__(self, side: int):
         self.side = side
@@ -17,8 +26,29 @@ class Agent:
         Main function, which gets called during step() of the environment.
 
         :param obs:
+        allied_ships: an array of all currently available ships for the player. The ships are represented as a list:
+                (ship id, position x, y, current health points, firing_cooldown, move_cooldown)
+                - ship id: int [0, 1000]
+                - position x: int [0, 100]
+                - position y: int [0, 100]
+                - health points: int [1, 100]
+                - firing_cooldown: int [0, 10]
+                - move_cooldown: int [0, 3]
         :return:
         """
+
+        global ship_types
+
+        # add new ship to types
+        ships = obs['allied_ships']
+        for ship in ships:
+
+            # logic for changing ship types
+            pass
+        
+            if not ship[0] in ship_types.keys():
+                ship_types[ship[0]] = ShipType.Defender
+
         ships_actions = []
 
         if self.home_base_x is None or self.home_base_y is None:
