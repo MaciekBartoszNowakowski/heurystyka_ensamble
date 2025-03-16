@@ -50,7 +50,7 @@ class Agent:
         types = self.count_type(obs)
 
         if self.turn >= 1750:
-            return ShipType.Horde
+            return ShipType.Defender
 
         if self.ship_number < len(sequence):
             if types[ShipType.Defender.value] < 1 and self.ship_number > 2:
@@ -62,8 +62,10 @@ class Agent:
         if types[ShipType.Defender.value] < 2:
             return ShipType.Defender
         elif random_value < 3:
+            print(random_value, "attacker chosen")
             return ShipType.Attacker
         else:
+            print("EXPLORER")
             return ShipType.Explorer
 
     def get_action(self, obs: dict) -> dict:
@@ -106,12 +108,12 @@ class Agent:
             if not ship[0] in self.ship_types.keys():
                 # work in progress
                 my_x = ship[1]
-                if my_x<50:
-                    if self.side!=0:
-                        self.side=0
+                if my_x < 50:
+                    if self.side != 0:
+                        self.side = 0
                         self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
                 else:
-                    if self.side !=1:
+                    if self.side != 1:
                         self.side = 1
                         self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
 
