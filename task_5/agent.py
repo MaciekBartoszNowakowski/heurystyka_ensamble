@@ -30,6 +30,8 @@ class Agent:
         self.turn = 0
         self.ship_number = 0
 
+        self.new_planet_discovered = None
+
     def count_type(self, obs:dict):
         types = [0, 0, 0, 0] # Attacker, Defender, Explorer, Conquerer
         if obs is None or obs['allied_ships'] is None:
@@ -87,6 +89,11 @@ class Agent:
 
         self.turn += 1
 
+        if self.new_planet_discovered == None:
+            for i, planet in enumerate(obs['planets_occupation']):
+                if planet[2] == -1:
+                    self.new_planet_discovered = i
+
         for ship in ships:
             new_type = self.select_type(obs)
             if not ship[0] in self.ship_types.keys():
@@ -108,6 +115,8 @@ class Agent:
         for ship in ships:
             ships_actions.append(type_to_method[self.ship_types[ship[0]]](obs, ship))
 
+        self.new_planet_discovered = None
+
         return {
             "ships_actions": ships_actions,
             "construction": 20
@@ -128,6 +137,14 @@ class Agent:
 
     def explorer(self, obs, ship):
         ship_id, _, _, _, _, _ = ship
+        if self.new_planet_discovered != None:
+            if self.get_distance(ship[1], ship[2], obs['planets_occupation'][self.new_planet_discovered][1],
+                                 obs['planets_occupation'][self.new_planet_discovered][0]) <= 15:
+                return [ship_id, 0, self.calculate_direction(ship[1], ship[2],
+                                                             obs['planets_occupation'][self.new_planet_discovered][1],
+                                                             obs['planets_occupation'][self.new_planet_discovered][0]),
+                        3]
+
         if self.upper_start:
             possible = [0, 1, 1, 1, 3, 3]
         else:
