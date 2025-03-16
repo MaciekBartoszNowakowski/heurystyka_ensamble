@@ -7,8 +7,6 @@ from importlib.machinery import SourceFileLoader
 from matches_config import TEAMS
 from simulation import simulate_game
 
-
-
 def get_parser():
     parser = argparse.ArgumentParser(description='Run matches between agents')
     parser.add_argument('path_to_agent_1', type=str, help="Path to the 1st player's agent")

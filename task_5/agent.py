@@ -12,7 +12,7 @@ class Agent:
     ship_types = {}
 
     def __init__(self, side: int):
-        self.side = 0
+        self.side = side
         self.enemy_base_x = 91
         self.enemy_base_y = 91
         self.home_base_x = 9
