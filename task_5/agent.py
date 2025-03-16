@@ -24,6 +24,11 @@ class Agent:
             self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
         self.ship_state_map = {}
 
+        self.side = side
+        self.timeouts = {}
+        self.upper_start = False
+        self.turn = 0
+
     def count_type(self, obs:dict):
         types = [0, 0, 0, 0] # Attacker, Defender, Explorer, Conquerer
         for ship in obs['allied_ships']:
@@ -66,6 +71,12 @@ class Agent:
         ships = obs['allied_ships']
         gen_type = self.select_type(obs)
 
+        allied_ships = obs['allied_ships']
+
+        if self.turn == 0:
+            if allied_ships[0][1] < 50:
+                self.upper_start = True
+
         for ship in ships:
             if not ship[0] in self.ship_types.keys():
                 # self.ship_types[ship[0]] = ShipType.Attacker
@@ -101,7 +112,24 @@ class Agent:
         pass
 
     def explorer(self, obs, ship):
-        pass
+        ship_id, _, _, _, _, _ = ship
+        if self.upper_start:
+            possible = [0, 1, 1, 1, 3, 3]
+        else:
+            possible = [2, 1, 1, 3, 3, 3]
+
+        if ship_id in self.timeouts:
+            time, side = self.timeouts[ship_id]
+            if time != 0:
+                time -= 1
+                self.timeouts[ship_id] = [time, side]
+            else:
+                self.timeouts[ship_id] = [random.randint(15, 23), possible[random.randint(0, 5)]]
+        else:
+            self.timeouts[ship_id] = [random.randint(15, 23), possible[random.randint(0, 5)]]
+
+        time, side = self.timeouts[ship_id]
+        return [ship_id, 0, side, 3]
 
     def conquerer(self, obs, ship):
         pass
