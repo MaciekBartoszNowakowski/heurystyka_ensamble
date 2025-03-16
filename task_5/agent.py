@@ -104,9 +104,8 @@ class Agent:
                     self.new_planet_discovered = i
 
         for ship in ships:
-            new_type = self.select_type(obs)
             if not ship[0] in self.ship_types.keys():
-                # work in progress
+                
                 my_x = ship[1]
                 if my_x < 50:
                     if self.side != 0:
@@ -118,10 +117,10 @@ class Agent:
                         self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
 
 
-                self.ship_types[ship[0]] = new_type
+                self.ship_types[ship[0]] = self.select_type(obs)
                 self.ship_number += 1
             
-            if new_type == ShipType.Attacker:
+            if self.ship_types[ship[0]] == ShipType.Attacker:
                 for ship_id, ship_type in self.ship_types.items():
                     if self.ship_types[ship_id] == ShipType.Defender:
                         self.ship_types[ship_id] = ShipType.Attacker
