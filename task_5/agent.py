@@ -11,9 +11,10 @@ class ShipType(Enum):
 
 
 class Agent:
-    ship_types = {}
+
 
     def __init__(self, side: int):
+        self.ship_types = {}
         self.side = side # 0 gora, 1 dol
         self.enemy_base_x = 91
         self.enemy_base_y = 91
