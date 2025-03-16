@@ -146,67 +146,68 @@ class Agent:
             # Move vertically (down or up)
             return 1 if dy > 0 else 3
 
- 
     def get_next_step_direction(self, ship_id, pos_x, pos_y):
+        padding = 2
+
         self.ship_state_map.setdefault(ship_id, 0)
-        if self.get_distance(pos_x,pos_y,self.enemy_base_x,self.enemy_base_y) <= 15:
+        if self.get_distance(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y) <= 15:
             return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)
         if self.ship_state_map[ship_id] == 0:
             if pos_x > pos_y:
                 if pos_x > self.map_y - pos_y:
-                    if pos_x == self.map_x - 1:
+                    if pos_x == self.map_x - 1 - padding:
                         self.ship_state_map[ship_id] = 3
                     else:
                         return 0
                 else:
-                    if pos_y == 0:
+                    if pos_y == 0 + padding:
                         self.ship_state_map[ship_id] = 1
                     else:
                         return 3
             else:
                 if pos_x > self.map_y - pos_y:
-                    if pos_y == self.map_y - 1:
+                    if pos_y == self.map_y - 1 - padding:
                         self.ship_state_map[ship_id] = 4
                     else:
                         return 1
                 else:
-                    if pos_x == 0:
+                    if pos_x == 0 + padding:
                         self.ship_state_map[ship_id] = 2
                     else:
                         return 2
 
         elif self.ship_state_map[ship_id] == 1:
             if self.side == 0:
-                if pos_x == self.map_x - 1:
+                if pos_x == self.map_x - 1 - padding:
                     self.ship_state_map[ship_id] = 3
                 else:
                     return 0
             else:
-                if pos_x == 0:
+                if pos_x == 0 + padding:
                     self.ship_state_map[ship_id] = 5
                 else:
                     return 2
 
         elif self.ship_state_map[ship_id] == 2:
             if self.side == 0:
-                if pos_y == self.map_y - 1:
+                if pos_y == self.map_y - 1 - padding:
                     self.ship_state_map[ship_id] = 4
                 else:
                     return 1
             else:
-                if pos_y == 0:
+                if pos_y == 0 + padding:
                     self.ship_state_map[ship_id] = 5
                 else:
                     return 3
 
         elif self.ship_state_map[ship_id] == 3:
             if self.side == 0:
-                if pos_y == self.map_y - 1:
+                if pos_y == self.map_y - 1 - padding:
                     self.ship_state_map[ship_id] = 5
                 else:
                     return 1
             else:
-                if pos_y == 0:
+                if pos_y == 0 + padding:
                     self.ship_state_map[ship_id] = 1
                     return self.get_next_step_direction(ship_id, pos_x, pos_y)
                 else:
@@ -214,12 +215,12 @@ class Agent:
 
         elif self.ship_state_map[ship_id] == 4:
             if self.side == 0:
-                if pos_x == self.map_x - 1:
+                if pos_x == self.map_x - 1 - padding:
                     self.ship_state_map[ship_id] = 5
                 else:
                     return 0
             else:
-                if pos_x == 0:
+                if pos_x == 0 + padding:
                     self.ship_state_map[ship_id] = 2
                     return self.get_next_step_direction(ship_id, pos_x, pos_y)
                 else:

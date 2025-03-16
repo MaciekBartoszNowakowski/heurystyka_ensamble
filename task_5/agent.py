@@ -1,14 +1,15 @@
 import random
 from enum import Enum
 
+
 class ShipType(Enum):
     Attacker = 1
     Defender = 2
     Explorer = 3
     Conquerer = 4
 
-class Agent:
 
+class Agent:
     ship_types = {}
 
     def __init__(self, side: int):
@@ -22,7 +23,6 @@ class Agent:
         if side == 1:
             self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
         self.ship_state_map = {}
-
 
     def get_action(self, obs: dict) -> dict:
         """
@@ -58,24 +58,21 @@ class Agent:
         for ship in ships:
             ships_actions.append(type_to_method[self.ship_types[ship[0]]](obs, ship))
 
-
         return {
             "ships_actions": ships_actions,
             "construction": 20
         }
 
-
     def attacker(self, obs, ship):
         ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
 
         direction = 0
-        speed = 1
+        speed = 3
 
-        direction = self.get_next_step_direction(ship_id,ship_x,ship_y)
-
+        direction = self.get_next_step_direction(ship_id, ship_x, ship_y)
 
         return [ship_id, 0, direction, speed]
-    
+
     def defender(self, obs, ship):
         pass
 
@@ -84,11 +81,10 @@ class Agent:
 
     def conquerer(self, obs, ship):
         pass
-            
+
         # Send ships to the center of the map
         for ship in obs['allied_ships']:
             ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
-
 
     def calculate_direction(self, ship_x: int, ship_y: int, target_x: int, target_y: int) -> int:
         """
@@ -113,67 +109,68 @@ class Agent:
             # Move vertically (down or up)
             return 1 if dy > 0 else 3
 
- 
     def get_next_step_direction(self, ship_id, pos_x, pos_y):
+        padding = 2
+
         self.ship_state_map.setdefault(ship_id, 0)
-        if self.get_distance(pos_x,pos_y,self.enemy_base_x,self.enemy_base_y) <= 15:
+        if self.get_distance(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y) <= 15:
             return self.calculate_direction(pos_x, pos_y, self.enemy_base_x, self.enemy_base_y)
         if self.ship_state_map[ship_id] == 0:
             if pos_x > pos_y:
                 if pos_x > self.map_y - pos_y:
-                    if pos_x == self.map_x - 1:
+                    if pos_x == self.map_x - 1 - padding:
                         self.ship_state_map[ship_id] = 3
                     else:
                         return 0
                 else:
-                    if pos_y == 0:
+                    if pos_y == 0 + padding:
                         self.ship_state_map[ship_id] = 1
                     else:
                         return 3
             else:
                 if pos_x > self.map_y - pos_y:
-                    if pos_y == self.map_y - 1:
+                    if pos_y == self.map_y - 1 - padding:
                         self.ship_state_map[ship_id] = 4
                     else:
                         return 1
                 else:
-                    if pos_x == 0:
+                    if pos_x == 0 + padding:
                         self.ship_state_map[ship_id] = 2
                     else:
                         return 2
 
         elif self.ship_state_map[ship_id] == 1:
             if self.side == 0:
-                if pos_x == self.map_x - 1:
+                if pos_x == self.map_x - 1 - padding:
                     self.ship_state_map[ship_id] = 3
                 else:
                     return 0
             else:
-                if pos_x == 0:
+                if pos_x == 0 + padding:
                     self.ship_state_map[ship_id] = 5
                 else:
                     return 2
 
         elif self.ship_state_map[ship_id] == 2:
             if self.side == 0:
-                if pos_y == self.map_y - 1:
+                if pos_y == self.map_y - 1 - padding:
                     self.ship_state_map[ship_id] = 4
                 else:
                     return 1
             else:
-                if pos_y == 0:
+                if pos_y == 0 + padding:
                     self.ship_state_map[ship_id] = 5
                 else:
                     return 3
 
         elif self.ship_state_map[ship_id] == 3:
             if self.side == 0:
-                if pos_y == self.map_y - 1:
+                if pos_y == self.map_y - 1 - padding:
                     self.ship_state_map[ship_id] = 5
                 else:
                     return 1
             else:
-                if pos_y == 0:
+                if pos_y == 0 + padding:
                     self.ship_state_map[ship_id] = 1
                     return self.get_next_step_direction(ship_id, pos_x, pos_y)
                 else:
@@ -181,12 +178,12 @@ class Agent:
 
         elif self.ship_state_map[ship_id] == 4:
             if self.side == 0:
-                if pos_x == self.map_x - 1:
+                if pos_x == self.map_x - 1 - padding:
                     self.ship_state_map[ship_id] = 5
                 else:
                     return 0
             else:
-                if pos_x == 0:
+                if pos_x == 0 + padding:
                     self.ship_state_map[ship_id] = 2
                     return self.get_next_step_direction(ship_id, pos_x, pos_y)
                 else:
@@ -204,7 +201,7 @@ class Agent:
         self.enemy_base_y = abs(self.home_base_y - self.map_y)
 
     def get_distance(self, x_1, y_1, x_2, y_2):
-        return (abs(x_1 -x_2)**2 + abs(y_1 - y_2)**2)**(1/2)
+        return (abs(x_1 - x_2) ** 2 + abs(y_1 - y_2) ** 2) ** (1 / 2)
 
     def load(self, abs_path: str):
         pass
