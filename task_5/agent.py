@@ -3,10 +3,10 @@ from enum import Enum
 
 
 class ShipType(Enum):
-    Attacker = 1
-    Defender = 2
-    Explorer = 3
-    Conquerer = 4
+    Attacker = 0
+    Defender = 1
+    Explorer = 2
+    Conquerer = 3
 
 
 class Agent:
@@ -23,6 +23,28 @@ class Agent:
         if side == 1:
             self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
         self.ship_state_map = {}
+
+    def count_type(self, obs:dict):
+        types = [0, 0, 0, 0] # Attacker, Defender, Explorer, Conquerer
+        for ship in obs['allied_ships']:
+            ship_id = ship[0]
+            types[self.ship_types[ship_id]] += 1
+
+        return types
+
+
+    def select_type(self, obs:dict):
+        sequence = [ShipType.Attacker, ShipType.Attacker, ShipType.Defender, ShipType.Explorer]
+
+        for ship_type in sequence:
+            yield ship_type
+
+        while True:
+            types = self.count_type(obs)
+            if types[ShipType.Defender] < 2:
+                yield ShipType.Defender
+            else:
+                yield ShipType.Explorer
 
     def get_action(self, obs: dict) -> dict:
         """
@@ -42,10 +64,12 @@ class Agent:
 
         # add new ships to types
         ships = obs['allied_ships']
+        gen_type = self.select_type(obs)
 
         for ship in ships:
             if not ship[0] in self.ship_types.keys():
-                self.ship_types[ship[0]] = ShipType.Attacker
+                # self.ship_types[ship[0]] = ShipType.Attacker
+                self.ship_types[ship[0]] = next(gen_type)
 
         ships_actions = []
         type_to_method = {
