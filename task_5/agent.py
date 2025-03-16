@@ -133,7 +133,8 @@ class Agent:
         return [ship_id, 0, direction, speed]
 
     def defender(self, obs, ship):
-        return [ship[0], 0, 0, 0]
+        id, my_x, my_y, _, _, _ = ship
+        return [id, 1, 1]
 
     def explorer(self, obs, ship):
         ship_id, _, _, _, _, _ = ship
