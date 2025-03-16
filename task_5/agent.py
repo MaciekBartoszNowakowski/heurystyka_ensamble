@@ -62,14 +62,21 @@ class Agent:
         if types[ShipType.Defender.value] < 2:
             return ShipType.Defender
         elif random_value < 3:
-            print(random_value, "attacker chosen")
             return ShipType.Attacker
         else:
-            print("EXPLORER")
             return ShipType.Explorer
 
+    def setup_side(self, my_x):
+        if my_x < 50:
+            if self.side != 0:
+                self.side = 0
+                self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+        else:
+            if self.side != 1:
+                self.side = 1
+                self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+
     def get_action(self, obs: dict) -> dict:
-        print
         """
         Main function, which gets called during step() of the environment.
 
@@ -88,13 +95,12 @@ class Agent:
         # add new ships to types
         ships = obs['allied_ships']
 
-        print("PRINT TYPES:", self.count_type(obs))
-
         allied_ships = obs['allied_ships']
 
         if self.turn == 0:
             if allied_ships[0][1] < 50:
                 self.upper_start = True
+            self.setup_side(allied_ships[0][1])
 
         self.turn += 1
 
@@ -104,27 +110,16 @@ class Agent:
                     self.new_planet_discovered = i
 
         for ship in ships:
+
             if not ship[0] in self.ship_types.keys():
-                
-                my_x = ship[1]
-                if my_x < 50:
-                    if self.side != 0:
-                        self.side = 0
-                        self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
-                else:
-                    if self.side != 1:
-                        self.side = 1
-                        self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
-
-
                 self.ship_types[ship[0]] = self.select_type(obs)
                 self.ship_number += 1
             
-            if self.ship_types[ship[0]] == ShipType.Attacker:
-                for ship_id, ship_type in self.ship_types.items():
-                    if self.ship_types[ship_id] == ShipType.Defender:
-                        self.ship_types[ship_id] = ShipType.Attacker
-                        break
+                if self.ship_types[ship[0]] == ShipType.Attacker and self.ship_number > 4:
+                    for ship_id, ship_type in self.ship_types.items():
+                        if self.ship_types[ship_id] == ShipType.Defender:
+                            self.ship_types[ship_id] = ShipType.Attacker
+                            break
 
             if self.turn >= 1750:
                 for ship_id, ship_type in self.ship_types.items():
