@@ -45,13 +45,17 @@ class Agent:
 
     def select_type(self, obs:dict):
         sequence = [ShipType.Attacker, ShipType.Attacker, ShipType.Defender, ShipType.Explorer]
-
+        types = self.count_type(obs)
         if self.ship_number < len(sequence):
+            if types[ShipType.Defender.value] < 1 and self.ship_number > 2:
+                return ShipType.Defender
             return sequence[self.ship_number]
 
-        types = self.count_type(obs)
+
         if types[ShipType.Defender.value] < 2:
             return ShipType.Defender
+        elif random.randint(0, 10) < 5:
+            return ShipType.Attacker
         else:
             return ShipType.Explorer
 
@@ -84,9 +88,14 @@ class Agent:
         self.turn += 1
 
         for ship in ships:
+            new_type = self.select_type(obs)
             if not ship[0] in self.ship_types.keys():
-                self.ship_types[ship[0]] = self.select_type(obs)
+                self.ship_types[ship[0]] = new_type
                 self.ship_number += 1
+            
+            if new_type == ShipType.Attacker:
+                for ship_id, ship_type in self.ship_types.items():
+                    self.ship_types[ship_id] = ShipType.Attacker
 
         ships_actions = []
         type_to_method = {
