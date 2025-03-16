@@ -34,7 +34,7 @@ class Agent:
         self.new_planet_discovered = None
 
     def count_type(self, obs:dict):
-        types = [0, 0, 0, 0] # Attacker, Defender, Explorer, Conquerer
+        types = [0 for _ in range(len(ShipType))] # Attacker, Defender, Explorer, Conquerer
         if obs is None or obs['allied_ships'] is None:
             return types
         
@@ -49,6 +49,10 @@ class Agent:
     def select_type(self, obs:dict):
         sequence = [ShipType.Attacker, ShipType.Attacker, ShipType.Defender, ShipType.Explorer]
         types = self.count_type(obs)
+
+        if self.turn >= 1750:
+            return ShipType.Horde
+
         if self.ship_number < len(sequence):
             if types[ShipType.Defender.value] < 1 and self.ship_number > 2:
                 return ShipType.Defender
@@ -57,7 +61,7 @@ class Agent:
 
         if types[ShipType.Defender.value] < 2:
             return ShipType.Defender
-        elif random.randint(0, 10) < 5:
+        elif random.randint(0, 10) < 3:
             return ShipType.Attacker
         else:
             return ShipType.Explorer
@@ -104,6 +108,12 @@ class Agent:
             if new_type == ShipType.Attacker:
                 for ship_id, ship_type in self.ship_types.items():
                     self.ship_types[ship_id] = ShipType.Attacker
+
+            if self.turn >= 1750:
+                for ship_id, ship_type in self.ship_types.items():
+                    if ship_type == ShipType.Explorer:
+                        self.ship_types[ship_id] = ShipType.Horde
+
 
         ships_actions = []
         type_to_method = {
