@@ -106,9 +106,6 @@ class Agent:
     def conquerer(self, obs, ship):
         pass
 
-        # Send ships to the center of the map
-        for ship in obs['allied_ships']:
-            ship_id, ship_x, ship_y, health, firing_cooldown, move_cooldown = ship
 
     def calculate_direction(self, ship_x: int, ship_y: int, target_x: int, target_y: int) -> int:
         """
