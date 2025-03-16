@@ -14,7 +14,7 @@ class Agent:
     ship_types = {}
 
     def __init__(self, side: int):
-        self.side = side
+        self.side = side # 0 gora, 1 dol
         self.enemy_base_x = 91
         self.enemy_base_y = 91
         self.home_base_x = 9
@@ -25,7 +25,6 @@ class Agent:
             self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
         self.ship_state_map = {}
 
-        self.side = side
         self.timeouts = {}
         self.upper_start = False
         self.turn = 0
@@ -67,6 +66,7 @@ class Agent:
             return ShipType.Explorer
 
     def get_action(self, obs: dict) -> dict:
+        print
         """
         Main function, which gets called during step() of the environment.
 
@@ -102,6 +102,18 @@ class Agent:
         for ship in ships:
             new_type = self.select_type(obs)
             if not ship[0] in self.ship_types.keys():
+                # work in progress
+                my_x = ship[1]
+                if my_x<50:
+                    if self.side!=0:
+                        self.side=0
+                        self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+                else:
+                    if self.side !=1:
+                        self.side = 1
+                        self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+
+
                 self.ship_types[ship[0]] = new_type
                 self.ship_number += 1
             
