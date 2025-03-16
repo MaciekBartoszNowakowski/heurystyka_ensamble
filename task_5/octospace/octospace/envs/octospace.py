@@ -65,7 +65,7 @@ class OctoSpaceEnv(gym.Env):
                  player_1_id: int,
                  player_2_id: int,
                  render_mode: Optional[str] = None,
-                 max_steps: int = 1000,
+                 max_steps: int = 2000,
                  turn_on_music: bool = False,
                  volume: float = 0.25,
                  seed: Optional[int] = None
