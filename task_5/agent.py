@@ -58,10 +58,11 @@ class Agent:
                 return ShipType.Defender
             return sequence[self.ship_number]
 
+        random_value = random.randint(0, 9)
 
         if types[ShipType.Defender.value] < 2:
             return ShipType.Defender
-        elif random.randint(0, 10) < 3:
+        elif random_value < 3:
             return ShipType.Attacker
         else:
             return ShipType.Explorer
@@ -85,6 +86,7 @@ class Agent:
         # add new ships to types
         ships = obs['allied_ships']
 
+        print("PRINT TYPES:", self.count_type(obs))
 
         allied_ships = obs['allied_ships']
 
@@ -107,7 +109,9 @@ class Agent:
             
             if new_type == ShipType.Attacker:
                 for ship_id, ship_type in self.ship_types.items():
-                    self.ship_types[ship_id] = ShipType.Attacker
+                    if self.ship_types[ship_id] == ShipType.Defender:
+                        self.ship_types[ship_id] = ShipType.Attacker
+                        break
 
             if self.turn >= 1750:
                 for ship_id, ship_type in self.ship_types.items():
@@ -182,7 +186,7 @@ class Agent:
     def horde(self,obs,ship):
         id, my_x, my_y, _, _, _ = ship
 
-        return [id, 0, self.calculate_direction(my_x,my_y,self.enemy_base_x,self.home_base_y),3]
+        return [id, 0, self.calculate_direction(my_x, my_y, self.enemy_base_x, self.enemy_base_y), 3]
 
 
     def calculate_direction(self, ship_x: int, ship_y: int, target_x: int, target_y: int) -> int:
