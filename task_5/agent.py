@@ -28,12 +28,17 @@ class Agent:
         self.timeouts = {}
         self.upper_start = False
         self.turn = 0
+        self.ship_number = 0
 
     def count_type(self, obs:dict):
         types = [0, 0, 0, 0] # Attacker, Defender, Explorer, Conquerer
+        if obs is None or obs['allied_ships'] is None:
+            return types
+        
         for ship in obs['allied_ships']:
             ship_id = ship[0]
-            types[self.ship_types[ship_id]] += 1
+            if ship_id in self.ship_types.keys():
+                types[self.ship_types[ship_id].value] += 1
 
         return types
 
@@ -41,15 +46,14 @@ class Agent:
     def select_type(self, obs:dict):
         sequence = [ShipType.Attacker, ShipType.Attacker, ShipType.Defender, ShipType.Explorer]
 
-        for ship_type in sequence:
-            yield ship_type
+        if self.ship_number < len(sequence):
+            return sequence[self.ship_number]
 
-        while True:
-            types = self.count_type(obs)
-            if types[ShipType.Defender] < 2:
-                yield ShipType.Defender
-            else:
-                yield ShipType.Explorer
+        types = self.count_type(obs)
+        if types[ShipType.Defender.value] < 2:
+            return ShipType.Defender
+        else:
+            return ShipType.Explorer
 
     def get_action(self, obs: dict) -> dict:
         """
@@ -69,7 +73,7 @@ class Agent:
 
         # add new ships to types
         ships = obs['allied_ships']
-        gen_type = self.select_type(obs)
+
 
         allied_ships = obs['allied_ships']
 
@@ -77,10 +81,12 @@ class Agent:
             if allied_ships[0][1] < 50:
                 self.upper_start = True
 
+        self.turn += 1
+
         for ship in ships:
             if not ship[0] in self.ship_types.keys():
-                # self.ship_types[ship[0]] = ShipType.Attacker
-                self.ship_types[ship[0]] = next(gen_type)
+                self.ship_types[ship[0]] = self.select_type(obs)
+                self.ship_number += 1
 
         ships_actions = []
         type_to_method = {
@@ -109,7 +115,7 @@ class Agent:
         return [ship_id, 0, direction, speed]
 
     def defender(self, obs, ship):
-        pass
+        return [ship[0], 0, 0, 0]
 
     def explorer(self, obs, ship):
         ship_id, _, _, _, _, _ = ship
