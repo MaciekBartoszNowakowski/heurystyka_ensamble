@@ -68,8 +68,19 @@ class Agent:
             print("EXPLORER")
             return ShipType.Explorer
 
+    def setup_side(self, my_x):
+        if my_x < 50:
+            if self.side != 0:
+                self.side = 0
+                self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+                print(self.turn)
+        else:
+            if self.side != 1:
+                self.side = 1
+                self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
+                print(self.turn)
+
     def get_action(self, obs: dict) -> dict:
-        print
         """
         Main function, which gets called during step() of the environment.
 
@@ -95,6 +106,7 @@ class Agent:
         if self.turn == 0:
             if allied_ships[0][1] < 50:
                 self.upper_start = True
+            self.setup_side(allied_ships[0][1])
 
         self.turn += 1
 
@@ -106,18 +118,6 @@ class Agent:
         for ship in ships:
             new_type = self.select_type(obs)
             if not ship[0] in self.ship_types.keys():
-                # work in progress
-                my_x = ship[1]
-                if my_x < 50:
-                    if self.side != 0:
-                        self.side = 0
-                        self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
-                else:
-                    if self.side != 1:
-                        self.side = 1
-                        self.enemy_base_x, self.enemy_base_y, self.home_base_x, self.home_base_y = self.home_base_x, self.home_base_y, self.enemy_base_x, self.enemy_base_y
-
-
                 self.ship_types[ship[0]] = new_type
                 self.ship_number += 1
             
