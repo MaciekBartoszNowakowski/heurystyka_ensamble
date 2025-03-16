@@ -7,6 +7,7 @@ class ShipType(Enum):
     Defender = 1
     Explorer = 2
     Conquerer = 3
+    Horde = 4
 
 
 class Agent:
@@ -110,6 +111,7 @@ class Agent:
             ShipType.Defender: self.defender,
             ShipType.Explorer: self.explorer,
             ShipType.Conquerer: self.conquerer,
+            ShipType.Horde: self.horde,
         }
 
         for ship in ships:
@@ -166,6 +168,11 @@ class Agent:
 
     def conquerer(self, obs, ship):
         pass
+
+    def horde(self,obs,ship):
+        id, my_x, my_y, _, _, _ = ship
+
+        return [id, 0, self.calculate_direction(my_x,my_y,self.enemy_base_x,self.home_base_y),3]
 
 
     def calculate_direction(self, ship_x: int, ship_y: int, target_x: int, target_y: int) -> int:
