@@ -267,6 +267,7 @@ class Agent:
             else:
                 if pos_x == 0 + padding:
                     self.ship_state_map[ship_id] = 2
+
                     return self.get_next_step_direction(ship_id, pos_x, pos_y)
                 else:
                     return 2
